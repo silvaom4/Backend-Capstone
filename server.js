@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const userData = require("./database.js");
 const { OpenAI } = require("openai");
+const bcrypt = require("bcrypt");
 
 dotenv.config();
 
@@ -23,37 +24,56 @@ app.post("/api", (req, res) => {
   });
 
 app.post("/api/login", (req, res) => {
-  const sql = `select * from users where Email='${req.body.email}' and userPassword='${req.body.password}'`
+
+  const sql = `select * from users where Email='${req.body.email}'`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     if (result.length > 0) {
-      res.send({ message: "User logged in successfully",
-      user: result[0]});
+      if (bcrypt.compareSync(req.body.password, result[0].userPassword)) {
+        return res.send({ message: "User logged in successfully", user: result[0] });
+      } else {
+        return res.send({ message: "Password Incorrect" });
+      }
     } else {
-      res.send({ message: "User not found" });
+      return res.send({ message: "User not found" });
     }
   });
 });
 
 app.post("/api/register", (req, res) => {
-  const sql = `insert into users (Email, userPassword, FirstName, LastName, Username, isAdmin) values ('${req.body.email}', '${req.body.password}', '${req.body.firstName}', '${req.body.lastName}', '${req.body.username}', 0)`;
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  const sql = `insert into users (Email, userPassword, FirstName, LastName, Username, isAdmin) values ('${req.body.email}', '${hashedPassword}', '${req.body.firstName}', '${req.body.lastName}', '${req.body.username}', 0)`;
   const emailCheck = `select * from users where Email='${req.body.email}'`
-  userData.query(emailCheck, (err, result) => {
+  const usernameCheck = `select * from users where Username='${req.body.username}'`
+  userData.query(usernameCheck, (err, result) => {
     if (err) throw err;
     if (result.length > 0) {
-      return res.send({ message: "Email already exists" });
+      return res.send({ message: "Username already exists" });
     } else {
-      userData.query(sql, (err, result) => {
+      userData.query(emailCheck, (err, result) => {
         if (err) throw err;
-        return res.send({ message: "User registered successfully" });
+        if (result.length > 0) {
+          return res.send({ message: "Email already exists" });
+        } else {
+          userData.query(sql, (err, result) => {
+            if (err) throw err;
+            const sql2 = `select * from users where Email='${req.body.email}'`
+            userData.query(sql2, (err, result) => {
+              if (err) throw err;
+              return res.send({ message: "User registered successfully", user: result[0] });
+            });
+            // return res.send({ message: "User registered successfully"});
+          });
+        }
       });
-    }
+    } 
   });
+  
 });
 
 app.post("/api/forum/posts", (req, res) => {
   // const sql = `select * from forum`
-  const sql = `select forum.forumID, forum.Content, forum.userID, forum.HeaderContent, users.Username, users.ProfilePicture from forum inner join users on forum.userID = users.UserID`
+  const sql = `select forum.forumID, forum.Content, forum.userID, forum.HeaderContent, forum.dateAdded, users.Username, users.ProfilePicture, users.isAdmin from forum inner join users on forum.userID = users.UserID`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     return res.send({ message: "Forum posts retrieved successfully", posts: result });
@@ -61,7 +81,7 @@ app.post("/api/forum/posts", (req, res) => {
 });
 
 app.post("/api/forum/post", (req, res) => {
-  const sql = `insert into forum (Content, userID, HeaderContent) values ('${req.body.post}', '${req.body.userID}', '${req.body.header}')`
+  const sql = `insert into forum (Content, userID, HeaderContent, dateAdded) values ('${req.body.post}', '${req.body.userID}', '${req.body.header}', now())`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     return res.send({ message: "Forum post created successfully" });
@@ -69,7 +89,7 @@ app.post("/api/forum/post", (req, res) => {
 });
 
 app.post("/api/forum/reply", (req, res) => {
-  const sql = `insert into reply (UserID, forumID, Content) values ('${req.body.userID}', '${req.body.postID}', "${req.body.reply}")`
+  const sql = `insert into reply (UserID, forumID, Content, dateAdded) values ('${req.body.userID}', '${req.body.postID}', "${req.body.reply}", now())`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     return res.send({ message: "Forum reply created successfully" });
@@ -77,7 +97,9 @@ app.post("/api/forum/reply", (req, res) => {
 });
 
 app.post("/api/forum/replies", (req, res) => {
-  const sql = `select * from reply where forumID='${req.body.postID}'`
+  // const sql = `select * from reply where forumID='${req.body.postID}'`
+  // const sql = "select * from reply"
+  const sql = `select reply.Content, users.Username, reply.dateAdded, users.isAdmin from reply inner join users on reply.UserID = users.UserID where forumID='${req.body.postID}'`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     return res.send({ message: "Forum replies retrieved successfully", replies: result });
@@ -91,6 +113,79 @@ app.post("/api/forum/delete", (req, res) => {
     return res.send({ message: "Forum post deleted successfully" });
   });
 });
+
+app.post("/api/profile", (req, res) => {
+  const sql = `select Email, FirstName, LastName, Username, ProfilePicture from users where UserID='${req.body.userID}'`
+  userData.query(sql, (err, result) => {
+    if (err) throw err;
+    return res.send({ message: "Profile retrieved successfully", profile: result });
+  });
+});
+
+app.post("/api/profile/changeUsername", (req, res) => {
+  if (req.body.newUsername === "") {
+    return res.send({ message: "Username cannot be empty" });
+  } else if (req.body.username === req.body.newUsername) {
+    return res.send({ message: "Username is the same" });
+  } else if (req.body.newUsername.length < 4) {
+    return res.send({ message: "Username must be at least 4 characters" });
+  } else if (req.body.newUsername.length > 20) {
+    return res.send({ message: "Username must be at most 20 characters" });
+  }
+  
+  const sql1 = `select * from users where UserID='${req.body.userID}'`
+  userData.query(sql1, (err, result) => {
+    if (err) throw err;
+    if (result.length > 0) {
+      if (bcrypt.compareSync(req.body.password, result[0].userPassword)) {
+        const sql = `update users set Username='${req.body.newUsername}' where UserID='${req.body.userID}'`
+        userData.query(sql, (err, result) => {
+          if (err) throw err;
+          return res.send({ message: "Username changed successfully" });
+        });
+      } else {
+        return res.send({ message: "Password Incorrect" });
+      }
+    } else {
+      return res.send({ message: "User not found" });
+    }
+});
+});
+
+app.post("/api/profile/changePassword", (req, res) => {
+  if (req.body.newPassword.length < 8) {
+    return res.send({ message: "Password must be at least 8 characters" });
+  } else if (req.body.newPassword === req.body.oldPassword) {
+    return res.send({ message: "New password cannot be the same as old password" });
+  }
+
+  const sql1 = `select * from users where UserID='${req.body.userID}'`
+  userData.query(sql1, (err, result) => {
+    if (err) throw err;
+    if (result.length > 0) {
+      if (bcrypt.compareSync(req.body.oldPassword, result[0].userPassword)) {
+        const hashedPassword = bcrypt.hashSync(req.body.newPassword, 10);
+        const sql = `update users set userPassword='${hashedPassword}' where UserID='${req.body.userID}'`
+        userData.query(sql, (err, result) => {
+          if (err) throw err;
+          return res.send({ message: "Password changed successfully" });
+        });
+      } else {
+        return res.send({ message: "Password Incorrect" });
+      }
+    } else {
+      return res.send({ message: "User not found" });
+    }
+  });
+});
+
+// app.post("/api/profile/changeProfilePicture", (req, res) => {
+//   const sql = `update users set ProfilePicture='${req.body.picture}' where UserID='${req.body.userID}'`
+//   userData.query(sql, (err, result) => {
+//     if (err) throw err;
+//     return res.send({ message: "Profile picture changed successfully" });
+//   });
+// });
 
 app.post("/chat", async (req, res) => {
   const question = req.query.question;
