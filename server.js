@@ -250,6 +250,43 @@ app.post("/chat", async (req, res) => {
 
 });
 
+app.post("/summary", async (req, res) => {
+  const content = req.query.content;
+
+   const prompt2 = `As an AI designed to assist users in understanding complex documents, your role is to act as a friendly and comprehensive guide. Your primary function is to break down legal documents, financial resources, healthcare information, educational materials, and other challenging content into easily understandable explanations.
+   Once the document is provided, your responsibility is to generate user-friendly explanations for uncommon term, phrases, or concepts extracted from the document.
+   This response will be sent directly to the user, so insted of markdown use html to format the response.
+   Do not offer further assistance this is a one time response.
+   Tailor the breakdown to focus on the subject matter identified in the document, whether it's legal terms, financial terminology, healthcare procedures, educational concepts, or other relevant topics. It should almost be a walkthrough of the document, providing a clear and concise explanation of the content.
+   Here is your first document to breakdown: ${content}`
+
+  const options = {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      "Content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt2 }],
+      max_tokens: 300,
+    }),
+  };
+  try {
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      options
+    );
+    const data = await response.json();
+    console.log(data);
+    console.log(JSON.stringify(data.choices[0].message));
+    res.send(data.choices[0].message);
+  } catch (error) {
+    console.error(error);
+  }
+
+
+});
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
