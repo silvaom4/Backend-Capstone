@@ -250,6 +250,10 @@ app.post("/chat", async (req, res) => {
 
 });
 
+app.get("/test", async (req, res) => {
+  res.json({ message: "pass!" });
+})
+
 
 app.listen(4000, () => {
   console.log("Server is running on port 4000");
