@@ -59,7 +59,7 @@ it("test the profile end point", async () => {
   expect(response.body.message).toBe("Profile retrieved successfully");
 });
 
-
+// √√√√√√√
 it('checks for non-existent route', async () => {
   const response = await request.get('/fake-route');
   expect(response.status).toBe(404);
