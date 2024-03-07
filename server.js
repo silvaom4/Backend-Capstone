@@ -81,7 +81,7 @@ app.post("/api/forum/posts", (req, res) => {
 });
 
 app.post("/api/forum/post", (req, res) => {
-  const sql = `insert into forum (Content, userID, HeaderContent, dateAdded) values ('${req.body.post}', '${req.body.userID}', '${req.body.header}', now())`
+  const sql = `insert into forum (Content, userID, HeaderContent, dateAdded) values ("${req.body.post}", '${req.body.userID}', '${req.body.header}', now())`
   userData.query(sql, (err, result) => {
     if (err) throw err;
     return res.send({ message: "Forum post created successfully" });
@@ -286,6 +286,22 @@ app.post("/summary", async (req, res) => {
   }
 
 
+});
+
+app.post("/api/saveResponse", (req, res) => {
+  const sql = "insert into summaries (UserID, Content) values" + `("${req.body.userID}", "${req.body.content}")`;
+  userData.query(sql, (err, result) => {
+    if (err) throw err;
+    return res.send({ message: "Response saved successfully" });
+  });
+});
+
+app.post("/api/profile/loadSummaries", (req, res) => {
+  const sql = `select * from summaries where UserID='${req.body.userID}'`
+  userData.query(sql, (err, result) => {
+    if (err) throw err;
+    return res.send({ message: "Summaries retrieved successfully", summaries: result });
+  });
 });
 
 app.listen(4000, () => {
