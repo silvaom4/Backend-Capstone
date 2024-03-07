@@ -5,6 +5,12 @@ const userData = require("./database.js");
 const { OpenAI } = require("openai");
 const bcrypt = require("bcrypt");
 
+const corsOptions ={
+  origin:'*', 
+  credentials:true,     
+  optionSuccessStatus:200,
+}
+
 dotenv.config();
 
 const API_KEY = process.env.API_KEY;
@@ -16,8 +22,8 @@ const openai = new OpenAI({
 
 const app = express()
 app.use(express.json());
-app.use(cors());
 app.use(express.static("public"));
+app.use(cors(corsOptions));
 
 app.post("/api", (req, res) => {
     res.send({ message: userData });
