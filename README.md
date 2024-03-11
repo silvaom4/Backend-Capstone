@@ -15,7 +15,7 @@ Features of the application include:
 
 ## iSummarize API Documentation
 - https://docs.google.com/document/d/118tNi2m47TV0-pOvJW8IhsiWY7RWMdl2QxsvDF1S2zI/edit#heading=h.qau6ebrkjjgy
--This outlines our endpoints and functionality of the API used.
+- This outlines our endpoints and functionality of the API used.
 
  ## Installing the Project 
     
