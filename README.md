@@ -31,11 +31,12 @@ npm i
     - Here you can create a key - once you have this key in the folder, apply the following format to the .env file
     - API_KEY=your_key_here
 ## Running the test 
-
+-In your terminal
 - Run the test before you start the server 
     ```bash
     npm run test:watch
     ```
+- Then hit 'a' to run all tests
 - The tests will not work if the API Key is missing 
 
 ## USAGE 
