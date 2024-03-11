@@ -31,7 +31,7 @@ npm i
     - Here you can create a key - once you have this key in the folder, apply the following format to the .env file
     - API_KEY=your_key_here
 ## Running the test 
--In your terminal
+- In your terminal
 - Run the test before you start the server 
     ```bash
     npm run test:watch
