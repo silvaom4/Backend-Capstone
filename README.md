@@ -15,24 +15,24 @@ Features of the application include:
 
  ## Installing the Project 
     
-    - You must have the latest version of Node.
-    - Clone the repository 
-    - cd into the repository and run 'npm i
+- You must have the latest version of Node.
+- Clone the repository 
+- cd into the repository and run 'npm i
 
-        ```bash
-        npm i
-        ```
-    - '.env' - this application runs with an API Key from open ai
-             - https://platform.openai.com/docs/overview
-             - Here you can create a key - once you have this key in the folder, apply the following format to the .env file
-             - API_KEY=your_key_here
+```bash
+npm i
+```
+- '.env' - this application runs with an API Key from open ai
+    - https://platform.openai.com/docs/overview
+    - Here you can create a key - once you have this key in the folder, apply the following format to the .env file
+    - API_KEY=your_key_here
 ## Running the test 
 
-    - Run the test before you start the server 
+- Run the test before you start the server 
     ```bash
     npm run test:watch
     ```
-    - The tests will not work if the API Key is missing 
+- The tests will not work if the API Key is missing 
 
 ## USAGE 
 
