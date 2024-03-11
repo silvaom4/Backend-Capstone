@@ -13,6 +13,10 @@ Features of the application include:
  * Discussion Forum: See what others are saying, leave a comment, create a post.
  * Login: Create your own account and make the appliation personal.
 
+## iSummarize API Documentation
+- https://docs.google.com/document/d/118tNi2m47TV0-pOvJW8IhsiWY7RWMdl2QxsvDF1S2zI/edit#heading=h.qau6ebrkjjgy
+-This outlines our endpoints and functionality of the API used.
+
  ## Installing the Project 
     
 - You must have the latest version of Node.
